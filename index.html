@@ -157,6 +157,22 @@ body{font-family:var(--body);background:var(--bg);color:var(--ink);-webkit-font-
 .rksel{padding:7px 12px;border:1px solid #d8d6d1;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:600;color:#2a2a28;background:#fff;cursor:pointer;max-width:260px}
 .rksel:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,124,0,.15)}
 .monthrow{display:inline-flex;gap:4px;flex-wrap:wrap}
+/* --- Tendencia por mes --- */
+.panel--trend{border-top:3px solid var(--orange)}
+.trctl{display:flex;flex-direction:column;gap:9px;margin:2px 4px 14px}
+.trbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.trbar .trlab{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted2);margin-right:2px}
+.trchip{appearance:none;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;color:var(--muted);background:#f4f3f1;border:1px solid var(--border);border-radius:20px;padding:6px 14px;transition:.12s;white-space:nowrap}
+.trchip:hover{color:var(--ink);border-color:#d8d6d1}
+.trchip.on{background:var(--orange);color:#1a1a1a;border-color:var(--orange)}
+.thrscroll{display:flex;gap:6px;overflow-x:auto;padding:1px 2px 6px;scrollbar-width:thin;-webkit-overflow-scrolling:touch;max-width:100%}
+.thrscroll::-webkit-scrollbar{height:6px}.thrscroll::-webkit-scrollbar-thumb{background:#d8d6d1;border-radius:6px}.thrscroll::-webkit-scrollbar-track{background:transparent}
+.thrchip{appearance:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;color:#2a2a28;background:#fff;border:1px solid #d8d6d1;border-radius:8px;padding:6px 13px;white-space:nowrap;flex:none;transition:.12s}
+.thrchip:hover{border-color:var(--orange)}
+.thrchip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.trmeta{margin-left:auto}
+.tdelta{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;padding:5px 11px;border-radius:20px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tdelta.good{background:#fbeccf;color:#8a5600}.tdelta.bad{background:#fde7e7;color:#9a1d1d}.tdelta.flat{background:#eceae7;color:#5a5650}
 .rklist{display:flex;flex-direction:column;gap:6px}
 .rkrow{display:flex;align-items:center;gap:11px;background:#faf9f7;border:1px solid var(--border);border-radius:10px;padding:9px 13px;cursor:pointer;transition:border-color .12s,transform .1s}
 .rkrow:hover{border-color:var(--orange);transform:translateX(2px)}
@@ -224,6 +240,12 @@ body{font-family:var(--body);background:var(--bg);color:var(--ink);-webkit-font-
   <div class="view active" id="v-resumen">
     <div class="hero"><div class="hero__l"><h2>Vista General · CD Itagüí T2</h2><p id="heroSub">Resumen consolidado de asistencia</p></div><div class="hero__r"><b id="heroPct">—</b><span>Asistencia del operativo</span></div></div>
     <div class="kpis" id="k-resumen"></div>
+    <div class="grid g1">
+      <div class="panel panel--trend"><div class="panel__h"><div class="l"><h2>📈 Tendencia por mes</h2></div><span class="hint">no depende del mes seleccionado</span></div>
+        <p class="panel__sub" id="trend-resumen-sub"></p>
+        <div id="trend-resumen-ctl" class="trctl"></div>
+        <div class="cv cv--wide"><canvas id="c_trend_resumen"></canvas></div></div>
+    </div>
     <div class="grid g2">
       <div class="panel"><div class="panel__h"><div class="l"><h2>Distribución del periodo</h2></div><span class="hint">click porción ›</span></div><p class="panel__sub">Asistencias · inasistencias · permisos · descansos</p><div class="cv"><canvas id="c_dona"></canvas></div></div>
       <div class="panel"><div class="panel__h"><div class="l"><h2>Hallazgos automáticos</h2></div></div><p class="panel__sub">Generados a partir de los datos</p><div class="ins" id="i-resumen"></div></div>
@@ -237,6 +259,12 @@ body{font-family:var(--body);background:var(--bg);color:var(--ink);-webkit-font-
   <div class="view" id="v-asistencia">
     <div class="kpis" id="k-asis"></div>
     <div class="exnote" id="ex-asis"></div>
+    <div class="grid g1">
+      <div class="panel panel--trend"><div class="panel__h"><div class="l"><h2>📈 Tendencia por mes</h2></div><span class="hint">no depende del mes seleccionado</span></div>
+        <p class="panel__sub" id="trend-asis-sub"></p>
+        <div id="trend-asis-ctl" class="trctl"></div>
+        <div class="cv cv--wide"><canvas id="c_trend_asis"></canvas></div></div>
+    </div>
     <div class="grid g1">
       <div class="panel"><div class="panel__h"><div class="l"><h2>Inasistencias por día</h2></div><span class="hint">click barra → personas de ese día ›</span></div><p class="panel__sub">Selecciona un mes · click en una barra para ver quiénes faltaron</p><div class="tbl-search" id="msel-asis"></div><div class="cv cv--wide"><canvas id="c_inasdia"></canvas></div></div>
     </div>
@@ -261,6 +289,12 @@ body{font-family:var(--body);background:var(--bg);color:var(--ink);-webkit-font-
   <div class="view" id="v-marcaciones">
     <div class="kpis" id="k-marc"></div>
     <div class="grid g1">
+      <div class="panel panel--trend"><div class="panel__h"><div class="l"><h2>📈 Tendencia por mes</h2></div><span class="hint">no depende del mes seleccionado</span></div>
+        <p class="panel__sub" id="trend-marc-sub"></p>
+        <div id="trend-marc-ctl" class="trctl"></div>
+        <div class="cv cv--wide"><canvas id="c_trend_marc"></canvas></div></div>
+    </div>
+    <div class="grid g1">
       <div class="panel"><div class="panel__h"><div class="l"><h2>Marcaciones incorrectas por día</h2></div><span class="hint">click barra → personas de ese día ›</span></div><p class="panel__sub">Selecciona un mes · click en una barra para ver quiénes tuvieron inconsistencias · <b>inconsistencias actualizadas hasta el 24-jun</b></p><div class="tbl-search" id="msel-marc"></div><div class="cv cv--wide"><canvas id="c_incondia"></canvas></div></div>
     </div>
     <div class="grid g1">
@@ -283,6 +317,12 @@ body{font-family:var(--body);background:var(--bg);color:var(--ink);-webkit-font-
   <!-- JORNADA -->
   <div class="view" id="v-jornada">
     <div class="kpis" id="k-jornada"></div>
+    <div class="grid g1">
+      <div class="panel panel--trend"><div class="panel__h"><div class="l"><h2>📈 Tendencia por mes</h2></div><span class="hint">no depende del mes seleccionado</span></div>
+        <p class="panel__sub" id="trend-jl-sub"></p>
+        <div id="trend-jl-ctl" class="trctl"></div>
+        <div class="cv cv--wide"><canvas id="c_trend_jl"></canvas></div></div>
+    </div>
     <div class="grid g2">
       <div class="panel"><div class="panel__h"><div class="l"><h2>Clasificación JL · acumulado</h2></div><span class="hint">click banda ›</span></div><p class="panel__sub">Días trabajados por banda de jornada · click → personas de esa banda</p><div class="cv"><canvas id="c_jlband"></canvas></div></div>
       <div class="panel"><div class="panel__h"><div class="l"><h2>Excesos de JL por mes</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Jornadas &gt; 12 h · &gt;14 (rojo) · 13–14 (negro) · 12–13 (ámbar)</p><div class="cv"><canvas id="c_jlmes"></canvas></div></div>
@@ -316,6 +356,12 @@ body{font-family:var(--body);background:var(--bg);color:var(--ink);-webkit-font-
   <div class="view" id="v-descanso">
     <div class="kpis" id="k-desc"></div>
     <p class="panel__sub" style="margin:-4px 4px 12px">Descanso efectivo = horas entre la salida de un turno y la entrada del siguiente. <b>No efectivo = menos de 10 h</b> (bandas &lt;8 h y 8–10 h).</p>
+    <div class="grid g1">
+      <div class="panel panel--trend"><div class="panel__h"><div class="l"><h2>📈 Tendencia por mes</h2></div><span class="hint">no depende del mes seleccionado</span></div>
+        <p class="panel__sub" id="trend-desc-sub"></p>
+        <div id="trend-desc-ctl" class="trctl"></div>
+        <div class="cv cv--wide"><canvas id="c_trend_desc"></canvas></div></div>
+    </div>
     <div class="grid g2">
       <div class="panel"><div class="panel__h"><div class="l"><h2>Descanso efectivo · acumulado</h2></div><span class="hint">click banda ›</span></div><p class="panel__sub">Descansos entre turnos por banda · click → personas</p><div class="cv"><canvas id="c_descband"></canvas></div></div>
       <div class="panel"><div class="panel__h"><div class="l"><h2>Descansos no efectivos por mes</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Menos de 10 h · &lt;8 h (rojo) · 8–10 h (negro)</p><div class="cv"><canvas id="c_descmes"></canvas></div></div>
@@ -532,13 +578,16 @@ const DIDX={}; DAYS.forEach((f,i)=>DIDX[f]=i);
 let RG=null; // {a,b} índices de día inclusivos, o null=todo
 function inRG(di){return !RG||(di>=RG.a&&di<=RG.b);}
 function rangeDayIdx(){const o=[];for(let i=0;i<DAYS.length;i++) if(inRG(i)) o.push(i); return o;}
-function applyRange(a,b){
-  RG=(a==null)?null:{a:Math.min(a,b),b:Math.max(a,b)};
-  if(!RG){PARR=A_PARR;EV=A_EV;K=A_K;CS=A_CS;HTD=A_HTD;INCD=A_INCD;INAD=A_INAD;DAY=A_DAY;MET=A_MET;JLD=A_JLD;DESD=A_DESD;buildEvIdx();buildInconByDate();return;}
-  const f=r=>inRG(r[1]);
+let CG=""; // cargo seleccionado ("" = todos)
+function inCG(pi){return !CG||PRS[pi].c===CG;}
+function applyRange(a,b){RG=(a==null)?null:{a:Math.min(a,b),b:Math.max(a,b)};applyScope();}
+function applyCargo(c){CG=c||"";applyScope();}
+function applyScope(){
+  if(!RG&&!CG){PARR=A_PARR;EV=A_EV;K=A_K;CS=A_CS;HTD=A_HTD;INCD=A_INCD;INAD=A_INAD;DAY=A_DAY;MET=A_MET;JLD=A_JLD;DESD=A_DESD;buildEvIdx();buildInconByDate();return;}
+  const f=r=>inRG(r[1])&&inCG(r[0]);
   HTD=A_HTD.filter(f);INCD=A_INCD.filter(f);INAD=A_INAD.filter(f);DAY=A_DAY.filter(f);MET=A_MET.filter(f);JLD=A_JLD.filter(f);DESD=A_DESD.filter(f);
-  const dA=DAYS[RG.a],dB=DAYS[RG.b];
-  EV=A_EV.filter(e=>e.fecha>=dA&&e.fecha<=dB);
+  const dA=RG?DAYS[RG.a]:null,dB=RG?DAYS[RG.b]:null;
+  EV=A_EV.filter(e=>(!RG||(e.fecha>=dA&&e.fecha<=dB))&&(!CG||e.cargo===CG));
   const pp={};
   const gp=pi=>pp[pi]||(pp[pi]={pi,nombre:PRS[pi].n,cargo:PRS[pi].c,asist:0,inas:0,permisos:0,descansos:0,retiroDias:0,ht:0,dias:0,jornadas14:0,atraso:0,incon:0,marcTot:0,metodo:{'Reloj Control':0,'Marca Manual':0,'App':0,'Otro':0},sinMarca:0,pausaSi:0,pausaNo:0,recTotal:0,rec:{RNO:0,RDD:0,RND:0,RDF:0,RNF:0},fechas_inas:[],meses:{},dows:{},permTipos:{}});
   DAY.forEach(([pi,di,st])=>{const o=gp(pi),s=STATE_NAMES[st];if(s==='asist')o.asist++;else if(s==='inas'){o.inas++;o.fechas_inas.push(DAYS[di]);}else if(s==='permiso')o.permisos++;else if(s==='descanso')o.descansos++;else if(s==='retiro')o.retiroDias++;});
@@ -630,6 +679,7 @@ function resumen(){
   $("#r-pe").onclick=metricDrill("Permisos justificados","Permisos",p=>p.permisos);
   $("#r-ht").onclick=metricDrill("Horas trabajadas","Horas",p=>p.ht," h");
   $("#r-mi").onclick=metricDrill("Marcaciones incorrectas","Incorrectas",p=>p.incon);
+  buildTrendBoard("resumen","inas");
 
   mkc("c_dona",{type:"doughnut",data:{labels:["Asistencias","Inasistencias","Permisos","Descansos"],datasets:[{data:[K.asistencias,K.inasistencias,K.permisos,K.descansos],backgroundColor:[T.green,T.red,T.blue,T.amber],borderColor:"#fff",borderWidth:3}]},
     options:{cutout:"58%",plugins:{legend:{position:"right"},tooltip:{callbacks:{label:c=>{const t=K.asistencias+K.inasistencias+K.permisos+K.descansos;return `${c.label}: ${fmt(c.parsed)} (${fmt1(pct(c.parsed,t))}%)`;}}}},
@@ -668,6 +718,7 @@ function asistencia(){
   $("#a-as").onclick=metricDrill("Asistencias","Asistencias",p=>p.asist);
   $("#a-pe").onclick=metricDrill("Permisos","Permisos",p=>p.permisos);
   $("#a-de").onclick=metricDrill("Descansos","Descansos",p=>p.descansos);
+  buildTrendBoard("asis","inas");
 
   $("#ex-asis").innerHTML=`✓ <b>Filtro aplicado:</b> se excluyen ${K.inas_excluidos} colaboradores con más de 20 inasistencias (retiros o reingresos), equivalentes a ${fmt(K.inas_excluidos_dias)} días. El conteo de inasistencias refleja solo personal activo.`;
   buildRanking("#rk-inas",INAD,()=>1,{unit:"",vlabel:"inasist.",color:"#D32F2F"});
@@ -727,6 +778,7 @@ function marcaciones(){
   $("#m-in").onclick=metricDrill("Marcaciones incorrectas","Incorrectas",p=>p.incon);
   $("#m-ma").onclick=metricDrill("Marca manual","Manual",p=>p.metodo["Marca Manual"]);
   $("#m-sm").onclick=()=>openDrill(peopleDrill({title:"Personas sin marca",label:"Sin marca",sub:"Periodos sin marcación",people:PARR.filter(p=>p.sinMarca>0),metric:p=>p.sinMarca}));
+  buildTrendBoard("marc","correctas");
 
   // daily incon chart (sigue filtro global)
   $("#msel-marc").innerHTML="";
@@ -784,6 +836,7 @@ function jornada(){
   $("#j-14").onclick=()=>openDrill(bandPeopleFrame("Jornadas > 14 h",">14h",JLD,[5],JLB,JLCOL));
   $("#j-34").onclick=()=>openDrill(bandPeopleFrame("Jornadas 13–14 h","13–14h",JLD,[4],JLB,JLCOL));
   $("#j-23").onclick=()=>openDrill(bandPeopleFrame("Jornadas 12–13 h","12–13h",JLD,[3],JLB,JLCOL));
+  buildTrendBoard("jl","jornada");
 
   // Clasificación JL acumulado (6 bandas)
   mkc("c_jlband",{type:"bar",data:{labels:JLB.map(b=>b+" h"),datasets:[{label:"Días",data:jc,backgroundColor:JLCOL,borderRadius:4}]},
@@ -838,6 +891,7 @@ function descanso(){
   $("#d-8").onclick=()=>openDrill(bandPeopleFrame("Descanso < 8 h","<8h",DESD,[0],DEB,DECOL));
   $("#d-810").onclick=()=>openDrill(bandPeopleFrame("Descanso 8–10 h","8–10h",DESD,[1],DEB,DECOL));
   $("#d-de").onclick=metricDrill("Días de descanso","Descansos",p=>p.descansos);
+  buildTrendBoard("desc","descef");
 
   // acumulado por banda
   mkc("c_descband",{type:"bar",data:{labels:["< 8 h","8–10 h","> 10 h (efectivo)"],datasets:[{label:"Descansos",data:dc,backgroundColor:DECOL,borderRadius:4}]},
@@ -906,6 +960,67 @@ function buildJornadaCorta(){
 }
 
 
+/* ===================== TENDENCIA POR MES ===================== */
+/* Siempre muestra el panorama mes a mes (no depende del filtro de periodo).
+   Sí respeta el filtro global de cargo (CG). */
+let PRESENT_MONTHS=[];(function(){const s=new Set();DMETA.forEach(m=>s.add(m.mes));PRESENT_MONTHS=MES_ORDER.filter(m=>s.has(m));})();
+function zeroM(){const o={};PRESENT_MONTHS.forEach(m=>o[m]=0);return o;}
+const JL_THR=[{k:"-2",sign:"-",h:2,lbl:"−2 h"},{k:"-4",sign:"-",h:4,lbl:"−4 h"},{k:"-6",sign:"-",h:6,lbl:"−6 h"},{k:"+10",sign:"+",h:10,lbl:"+10 h"},{k:"+12",sign:"+",h:12,lbl:"+12 h"},{k:"+14",sign:"+",h:14,lbl:"+14 h"}];
+const TREND_METRICS={
+  inas:{label:"Inasistencias",color:T.red,goodUp:false},
+  correctas:{label:"Marcaciones correctas",color:T.green,goodUp:true},
+  jornada:{label:"Jornada laboral",color:T.orange,goodUp:false},
+  descef:{label:"Descanso efectivo",color:T.amber,goodUp:true}
+};
+function trendSeries(metric,thr){
+  const g=zeroM();
+  if(metric==="inas"){for(const r of A_INAD){if(!inCG(r[0]))continue;g[DMETA[r[1]].mes]++;}return{vals:g,sub:"faltas injustificadas / inasistencias"};}
+  if(metric==="correctas"){const inc=zeroM();for(const r of A_MET){if(!inCG(r[0]))continue;g[DMETA[r[1]].mes]++;}for(const r of A_INCD){if(!inCG(r[0]))continue;inc[DMETA[r[1]].mes]+=r[2];}PRESENT_MONTHS.forEach(m=>g[m]=Math.max(0,g[m]-inc[m]));return{vals:g,sub:"marcaciones sin inconsistencia (marcas − incorrectas)"};}
+  if(metric==="descef"){for(const r of A_DESD){if(!inCG(r[0]))continue;if(r[2]===2)g[DMETA[r[1]].mes]++;}return{vals:g,sub:"descansos entre turnos > 10 h (efectivos)"};}
+  if(metric==="jornada"){for(const r of A_HTD){if(!inCG(r[0]))continue;const h=r[2]/10,ok=thr.sign==="+"?h>=thr.h:h<thr.h;if(ok)g[DMETA[r[1]].mes]++;}return{vals:g,sub:(thr.sign==="+"?"jornadas de "+thr.h+" h o más":"jornadas menores a "+thr.h+" h")};}
+  return{vals:g,sub:""};
+}
+function trendDrill(metric,mes,thr){
+  const agg={},add=(pi,inc)=>{if(!inCG(pi))return;agg[pi]=(agg[pi]||0)+inc;};
+  let title,label;
+  if(metric==="inas"){for(const r of A_INAD){if(DMETA[r[1]].mes!==mes)continue;add(r[0],1);}title="Inasistencias · "+mes;label="inasist.";}
+  else if(metric==="correctas"){for(const r of A_MET){if(DMETA[r[1]].mes!==mes)continue;add(r[0],1);}for(const r of A_INCD){if(DMETA[r[1]].mes!==mes)continue;add(r[0],-r[2]);}title="Marcaciones correctas · "+mes;label="correctas";}
+  else if(metric==="descef"){for(const r of A_DESD){if(DMETA[r[1]].mes!==mes||r[2]!==2)continue;add(r[0],1);}title="Descanso efectivo · "+mes;label="efectivos";}
+  else{for(const r of A_HTD){if(DMETA[r[1]].mes!==mes)continue;const h=r[2]/10,ok=thr.sign==="+"?h>=thr.h:h<thr.h;if(ok)add(r[0],1);}title=(thr.sign==="+"?"Jornadas ≥ "+thr.h+" h · ":"Jornadas < "+thr.h+" h · ")+mes;label="días";}
+  const rows=Object.entries(agg).map(([pi,v])=>({pi:+pi,v})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+  return {title,label:mes,sub:(CG?CG+" · ":"")+"Click en una persona → ficha",render(root){
+    root.innerHTML=`<div class="dmeta">${rows.length} personas · ${fmt(rows.reduce((a,r)=>a+r.v,0))} ${label}</div>`+
+      (rows.length?`<div class="plist">`+rows.map(x=>{const p=PRS[x.pi];return `<div class="prow" data-n="${esc(p.n)}"><div class="av">${initials(p.n)}</div><div class="pn"><b>${esc(p.n)}</b><span>${esc(p.c)}</span></div><div class="pv">${fmt(x.v)}<small>${label}</small></div></div>`;}).join("")+`</div>`:`<div class="rkempty">Sin registros.</div>`);
+    wireRows(root);}};
+}
+function buildTrendBoard(pfx,defMetric){
+  const ctl=$("#trend-"+pfx+"-ctl");if(!ctl)return;
+  let metric=defMetric||"inas",thrK="+12";
+  const thrObj=()=>JL_THR.find(x=>x.k===thrK)||JL_THR[4];
+  function drawCtl(){
+    const metrics=[["inas","Inasistencias"],["correctas","Marcaciones correctas"],["jornada","Jornada laboral"],["descef","Descanso efectivo"]];
+    let h=`<div class="trbar"><span class="trlab">Indicador</span>`+metrics.map(([k,l])=>`<button class="trchip${metric===k?" on":""}" data-k="${k}">${l}</button>`).join("")+`<span class="trmeta" id="trend-${pfx}-meta"></span></div>`;
+    if(metric==="jornada")h+=`<div class="trbar"><span class="trlab">Umbral</span><div class="thrscroll">`+JL_THR.map(t=>`<button class="thrchip${thrK===t.k?" on":""}" data-t="${t.k}">${t.lbl}</button>`).join("")+`</div></div>`;
+    ctl.innerHTML=h;
+    ctl.querySelectorAll(".trchip").forEach(b=>b.onclick=()=>{metric=b.dataset.k;drawCtl();drawChart();});
+    ctl.querySelectorAll(".thrchip").forEach(b=>b.onclick=()=>{thrK=b.dataset.t;drawCtl();drawChart();});
+  }
+  function drawChart(){
+    const cfg=TREND_METRICS[metric],t=thrObj(),s=trendSeries(metric,t);
+    const labels=PRESENT_MONTHS,vals=labels.map(m=>s.vals[m]);
+    const goodUp=metric==="jornada"?false:cfg.goodUp;
+    let dtxt="—",dcls="flat";const bi=vals.findIndex(v=>v>0);
+    if(bi>=0&&bi<vals.length-1){const fv=vals[bi],lv=vals[vals.length-1],d=(lv-fv)/fv*100,improving=(d>0&&goodUp)||(d<0&&!goodUp);
+      dcls=Math.abs(d)<0.5?"flat":(improving?"good":"bad");dtxt=(d>0.5?"▲":d<-0.5?"▼":"■")+" "+fmt1(Math.abs(d))+"% vs "+labels[bi];}
+    const meta=$("#trend-"+pfx+"-meta");if(meta)meta.innerHTML=`<span class="tdelta ${dcls}">${dtxt}</span>`;
+    const sub=$("#trend-"+pfx+"-sub");if(sub)sub.textContent="No depende del mes seleccionado · "+(CG?"cargo: "+CG:"todos los cargos")+" · "+s.sub+" · click en una barra → personas";
+    mkc("c_trend_"+pfx,{type:"bar",data:{labels,datasets:[{label:cfg.label,data:vals,backgroundColor:cfg.color,borderRadius:6,maxBarThickness:56}]},
+      options:{plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>labels[i[0].dataIndex],label:c=>fmt(c.parsed.y)+" · "+s.sub}}},scales:{x:AN,y:{...AG,ticks:{callback:fmt}}},
+        onClick:(e,el)=>{if(!el.length)return;openDrill(trendDrill(metric,labels[el[0].index],t));}}});
+  }
+  drawCtl();drawChart();
+}
+
 /* ---------- ROUTER + FILTRO GLOBAL ---------- */
 const R={resumen,asistencia,marcaciones,jornada,descanso};let done={},CURV="resumen";
 function show(v){CURV=v;document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.v===v));
@@ -921,7 +1036,8 @@ function monthRangeIdx(mes){let a=-1,b=-1;DAYS.forEach((f,i)=>{if(DMETA[i].mes==
 function weeksOfMonth(mes){const[a,b]=monthRangeIdx(mes);const g={},order=[];for(let i=a;i<=b;i++){const w=DMETA[i].iso;if(!(w in g)){g[w]=[];order.push(w);}g[w].push(i);}return order.map((w,k)=>({n:k+1,ids:g[w]}));}
 function buildFilterBar(){
   const fb=$("#filterbar"),months=monthsPresent();
-  let selMonth="",selWeek="",selDay="";
+  const CARGOS=[...new Set(PRS.map(p=>p.c))].sort((a,b)=>a.localeCompare(b,"es"));
+  let selMonth="",selWeek="",selDay="",selCargo="";
   function curRange(){
     if(selDay!=="")return[+selDay,+selDay];
     if(selMonth&&selWeek!==""){const wk=weeksOfMonth(selMonth).find(x=>String(x.n)===String(selWeek));if(wk)return[wk.ids[0],wk.ids[wk.ids.length-1]];}
@@ -936,11 +1052,12 @@ function buildFilterBar(){
     if(selMonth){if(selWeek!==""){const g=wk.find(x=>String(x.n)===String(selWeek));dayIds=g?g.ids:[];}else{const[a,b]=monthRangeIdx(selMonth);for(let i=a;i<=b;i++)dayIds.push(i);}}
     fb.innerHTML=`
       <div class="frow">
+        <div class="fsel"><span class="flab">👤 Cargo</span><select id="fCargo"><option value="">Todos los cargos</option>${CARGOS.map(c=>`<option value="${esc(c)}"${selCargo===c?" selected":""}>${esc(c)}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">📅 Mes</span><select id="fMes"><option value="">Todos los meses</option>${months.map(m=>`<option value="${m}"${selMonth===m?" selected":""}>${m}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">🗓️ Semana</span><select id="fSem" ${selMonth?"":"disabled"}><option value="">Todas</option>${wk.map(w=>`<option value="${w.n}"${String(selWeek)===String(w.n)?" selected":""}>Semana ${w.n}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">📆 Día</span><select id="fDia" ${selMonth?"":"disabled"}><option value="">Todos</option>${dayIds.map(i=>`<option value="${i}"${String(selDay)===String(i)?" selected":""}>${fdate(DAYS[i])} · ${DMETA[i].dow}</option>`).join("")}</select></div>
         <span style="flex:1"></span>
-        <span class="fnow" id="fnow">${statusTxt()}</span>
+        <span class="fnow" id="fnow">${(selCargo?esc(selCargo)+" · ":"")+statusTxt()}</span>
       </div>
       <div class="frow sub">
         <span class="flab">Rango exacto</span>
@@ -950,11 +1067,12 @@ function buildFilterBar(){
         <button class="fbtn" id="fApply">Aplicar rango</button>
         <button class="fbtn ghost" id="fClear">Ver todo</button>
       </div>`;
+    $("#fCargo").onchange=e=>{selCargo=e.target.value;applyCargo(selCargo);refreshAll();draw();};
     $("#fMes").onchange=e=>{selMonth=e.target.value;selWeek="";selDay="";apply();};
     $("#fSem").onchange=e=>{selWeek=e.target.value;selDay="";apply();};
     $("#fDia").onchange=e=>{selDay=e.target.value;apply();};
     $("#fApply").onclick=()=>{const d=$("#fDesde").value,h=$("#fHasta").value;if(!d||!h){return;}const a=DIDX[d],b=DIDX[h];if(a==null||b==null){$("#fnow").textContent="Fechas sin datos";return;}selMonth="";selWeek="";selDay="";applyRange(a,b);refreshAll();draw();$("#fnow").textContent=fdate(DAYS[Math.min(a,b)])+" → "+fdate(DAYS[Math.max(a,b)]);};
-    $("#fClear").onclick=()=>{selMonth="";selWeek="";selDay="";applyRange(null);refreshAll();draw();};
+    $("#fClear").onclick=()=>{selMonth="";selWeek="";selDay="";selCargo="";CG="";applyRange(null);refreshAll();draw();};
   }
   draw();
 }
