@@ -300,17 +300,15 @@ body{font-family:var(--body);background:var(--bg);color:var(--ink);-webkit-font-
     <div class="grid g1">
       <div class="panel"><div class="panel__h"><div class="l"><h2>Top 10 · marcaciones incorrectas</h2></div><span class="hint">respeta el filtro de arriba</span></div><p class="panel__sub">Elige el alcance y el periodo · click en una persona → ficha</p><div id="rk-marc"></div></div>
     </div>
-    <div class="grid g2">
-      <div class="panel"><div class="panel__h"><div class="l"><h2>Marcaciones incorrectas por cargo</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Inconsistencias · click → personas de ese cargo → ficha</p><div class="cv"><canvas id="c_inconcargo"></canvas></div></div>
-      <div class="panel"><div class="panel__h"><div class="l"><h2>Método de marcaje</h2></div><span class="hint">click porción ›</span></div><p class="panel__sub">Reloj de control · marca manual · app móvil</p><div class="cv"><canvas id="c_metodo"></canvas></div></div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Marcaciones incorrectas por cargo</h2></div><span class="hint">click barra ›</span></div><p class="panel__sub">Inconsistencias por cargo · click en una barra → personas de ese cargo → ficha</p><div class="cv cv--wide"><canvas id="c_inconcargo"></canvas></div></div>
     </div>
-    <div class="grid g2">
-      <div class="panel"><div class="panel__h"><div class="l"><h2>Marca manual por cargo</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Click → personas con más marca manual</p><div class="cv"><canvas id="c_manualcargo"></canvas></div></div>
-      <div class="panel"><div class="panel__h"><div class="l"><h2>Calidad de marcaje por cargo</h2></div><span class="hint">click ›</span></div><p class="panel__sub">% incorrectas sobre total de marcas · click → personas</p><div class="cv"><canvas id="c_calidad"></canvas></div></div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Método de marcaje</h2></div><span class="hint">click porción ›</span></div><p class="panel__sub">Reloj de control · app móvil</p><div class="cv"><canvas id="c_metodo"></canvas></div></div>
     </div>
     <div class="panel"><div class="panel__h"><div class="l"><h2>Personas con más marcaciones incorrectas</h2></div></div><p class="panel__sub">Click en una persona → su ficha completa</p>
       <div class="tbl-search"><input id="s-marc" placeholder="🔍 Buscar persona o cargo…"><span class="count" id="ct-marc"></span></div>
-      <div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Persona</th><th>Cargo</th><th class="num">Incorrectas</th><th class="num">Marcas</th><th class="num">Manual</th></tr></thead><tbody id="tb-marc"></tbody></table></div>
+      <div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Persona</th><th>Cargo</th><th class="num">Incorrectas</th><th class="num">Marcas</th></tr></thead><tbody id="tb-marc"></tbody></table></div>
     </div>
   </div>
 
@@ -517,7 +515,6 @@ function renderFicha(root,nombre){
     <div class="kv"><span>Marcas registradas</span><b>${fmt(p.marcTot)}</b></div>
     <div class="kv"><span>Incorrectas (inconsist.)</span><b>${p.incon}</b></div>
     <div class="kv"><span>Reloj de control</span><b>${fmt(p.metodo["Reloj Control"])}</b></div>
-    <div class="kv"><span>Marca manual</span><b>${fmt(p.metodo["Marca Manual"])} (${fmt1(p.marcManualPct)}%)</b></div>
     <div class="kv"><span>App móvil</span><b>${fmt(p.metodo["App"])}</b></div></div>`;
   h+=`<div class="fsec"><h4>Descanso y jornada</h4>
     <div class="kv"><span>Días de descanso</span><b>${p.descansos}</b></div>
@@ -773,10 +770,8 @@ function marcaciones(){
     kpi({n:fmt(K.marcTot),lbl:"Marcas registradas",sub:"Ingresos y salidas",tone:"ink"})+
     kpi({n:fmt1(K.marc_corr_pct),u:"%",lbl:"Marcaciones correctas",sub:"Sin inconsistencia",tone:"green"})+
     kpi({n:fmt(K.incon),lbl:"Marcaciones incorrectas",sub:`${fmt1(K.marc_inc_pct)}% · click → personas`,tone:"red",click:1,id:"m-in"})+
-    kpi({n:fmt1(K.marca_manual_pct),u:"%",lbl:"Marca manual",sub:`${fmt(K.marcaManual)} marcas · click → personas`,tone:"amber",click:1,id:"m-ma"})+
     kpi({n:fmt(K.sinMarca),lbl:"Personas sin marca",sub:"En algún periodo",tone:"orange",click:1,id:"m-sm"});
   $("#m-in").onclick=metricDrill("Marcaciones incorrectas","Incorrectas",p=>p.incon);
-  $("#m-ma").onclick=metricDrill("Marca manual","Manual",p=>p.metodo["Marca Manual"]);
   $("#m-sm").onclick=()=>openDrill(peopleDrill({title:"Personas sin marca",label:"Sin marca",sub:"Periodos sin marcación",people:PARR.filter(p=>p.sinMarca>0),metric:p=>p.sinMarca}));
   buildTrendBoard("marc","correctas");
 
@@ -794,29 +789,20 @@ function marcaciones(){
   buildRanking("#rk-marc",INCD,r=>r[2],{unit:"",vlabel:"incorr.",color:"#D32F2F"});
 
   const cs=CS.filter(c=>c.incon>0).sort((a,b)=>b.incon-a.incon);
-  mkc("c_inconcargo",{type:"bar",data:{labels:cs.map(c=>c.cargo),datasets:[{label:"Incorrectas",data:cs.map(c=>c.incon),backgroundColor:cs.map((c,i)=>CC[i%CC.length]),borderRadius:4}]},
-    options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{...AG,ticks:{callback:fmt}},y:{...AN,ticks:{font:{size:9}}}},
+  mkc("c_inconcargo",{type:"bar",data:{labels:cs.map(c=>c.cargo),datasets:[{label:"Incorrectas",data:cs.map(c=>c.incon),backgroundColor:cs.map((c,i)=>CC[i%CC.length]),borderRadius:5,maxBarThickness:60}]},
+    options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.y)+" marcaciones incorrectas"}}},scales:{x:{...AN,ticks:{maxRotation:90,minRotation:45,autoSkip:false,font:{size:9}}},y:{...AG,ticks:{callback:fmt}}},
       onClick:(e,el)=>{if(!el.length)return;const c=cs[el[0].index].cargo;openDrill(cargoPeopleFrame(c,PARR.filter(p=>p.cargo===c),p=>p.incon,fmt,"","Incorrectas"));}}});
 
   const mcnt=[0,0,0,0];MET.forEach(r=>mcnt[r[2]]++);const mlab=METODO_NAMES;
-  const metb=mlab.map((m,i)=>({metodo:m,count:mcnt[i]})).filter(x=>x.count>0);
-  mkc("c_metodo",{type:"doughnut",data:{labels:metb.map(m=>m.metodo),datasets:[{data:metb.map(m=>m.count),backgroundColor:[T.ink,T.red,T.amber,"#9a9a94"],borderColor:"#fff",borderWidth:3}]},
+  const metCol={"Reloj Control":T.ink,"App":T.amber,"Otro":"#9a9a94"};
+  const metb=mlab.map((m,i)=>({metodo:m,count:mcnt[i]})).filter(x=>x.count>0&&x.metodo!=="Marca Manual");
+  mkc("c_metodo",{type:"doughnut",data:{labels:metb.map(m=>m.metodo),datasets:[{data:metb.map(m=>m.count),backgroundColor:metb.map(m=>metCol[m.metodo]||"#9a9a94"),borderColor:"#fff",borderWidth:3}]},
     options:{cutout:"56%",plugins:{legend:{position:"right"},tooltip:{callbacks:{label:c=>`${c.label}: ${fmt(c.parsed)}`}}},
       onClick:(e,el)=>{if(!el.length)return;const met=metb[el[0].index].metodo;openDrill(peopleDrill({title:"Método: "+met,label:met,sub:"Marcas por persona",people:PARR,metric:p=>p.metodo[met]||0}));}}});
 
-  const csm=CS.filter(c=>c.marcaManual>0).sort((a,b)=>b.marcaManual-a.marcaManual);
-  mkc("c_manualcargo",{type:"bar",data:{labels:csm.map(c=>c.cargo),datasets:[{label:"Marca manual",data:csm.map(c=>c.marcaManual),backgroundColor:T.red,borderRadius:4}]},
-    options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{...AG,ticks:{callback:fmt}},y:{...AN,ticks:{font:{size:9}}}},
-      onClick:(e,el)=>{if(!el.length)return;const c=csm[el[0].index].cargo;openDrill(cargoPeopleFrame(c,PARR.filter(p=>p.cargo===c),p=>p.metodo["Marca Manual"],fmt,"","Marca manual"));}}});
-
-  const csc=CS.filter(c=>c.marcTot>0).map(c=>({cargo:c.cargo,pct:c.marc_inc_pct})).sort((a,b)=>b.pct-a.pct);
-  mkc("c_calidad",{type:"bar",data:{labels:csc.map(c=>c.cargo),datasets:[{label:"% incorrectas",data:csc.map(c=>c.pct),backgroundColor:csc.map(c=>c.pct>=30?T.red:c.pct>=20?T.orange:T.amber),borderRadius:4}]},
-    options:{indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt1(c.parsed.x)+"% incorrectas"}}},scales:{x:{...AG,ticks:{callback:v=>v+"%"}},y:{...AN,ticks:{font:{size:9}}}},
-      onClick:(e,el)=>{if(!el.length)return;const c=csc[el[0].index].cargo;openDrill(cargoPeopleFrame(c,PARR.filter(p=>p.cargo===c),p=>p.incon,fmt,"","Incorrectas"));}}});
-
   const top=PARR.filter(p=>p.incon>0).sort((a,b)=>b.incon-a.incon);
   function draw(q=""){q=q.toLowerCase();const rows=top.filter(p=>p.nombre.toLowerCase().includes(q)||p.cargo.toLowerCase().includes(q));
-    $("#tb-marc").innerHTML=rows.map(p=>`<tr class="click" data-n="${esc(p.nombre)}"><td class="num">${top.indexOf(p)+1}</td><td><b>${esc(p.nombre)}</b></td><td>${esc(p.cargo)}</td><td class="num"><span class="pill red">${p.incon}</span></td><td class="num">${fmt(p.marcTot)}</td><td class="num">${p.metodo["Marca Manual"]}</td></tr>`).join("");
+    $("#tb-marc").innerHTML=rows.map(p=>`<tr class="click" data-n="${esc(p.nombre)}"><td class="num">${top.indexOf(p)+1}</td><td><b>${esc(p.nombre)}</b></td><td>${esc(p.cargo)}</td><td class="num"><span class="pill red">${p.incon}</span></td><td class="num">${fmt(p.marcTot)}</td></tr>`).join("");
     $("#ct-marc").textContent=rows.length+" personas";
     $("#tb-marc").querySelectorAll("tr").forEach(tr=>tr.onclick=()=>openDrill(fichaFrame(tr.dataset.n)));}
   draw();$("#s-marc").oninput=e=>draw(e.target.value);
