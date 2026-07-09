@@ -364,7 +364,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--ink);-webkit-font-
     </div>
     <div class="grid g2">
       <div class="panel"><div class="panel__h"><div class="l"><h2>Descanso efectivo · acumulado</h2></div><span class="hint">click banda ›</span></div><p class="panel__sub">Descansos entre turnos por banda · click → personas</p><div class="cv"><canvas id="c_descband"></canvas></div></div>
-      <div class="panel"><div class="panel__h"><div class="l"><h2>Descansos no efectivos por mes</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Menos de 10 h · &lt;8 h (rojo) · 8–10 h (negro)</p><div class="cv"><canvas id="c_descmes"></canvas></div></div>
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Descansos no efectivos por mes</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Descansos de menos de 10 h entre turnos · click → personas de ese mes</p><div class="cv"><canvas id="c_descmes"></canvas></div></div>
     </div>
     <div class="grid g1">
       <div class="panel"><div class="panel__h"><div class="l"><h2>Descansos no efectivos por día</h2></div><span class="hint">click barra → personas ›</span></div><p class="panel__sub">Selecciona un mes · click → personas con descanso &lt; 10 h ese día</p><div class="tbl-search" id="msel-desc"></div><div class="cv cv--wide"><canvas id="c_descdia"></canvas></div></div>
@@ -898,12 +898,11 @@ function descanso(){
     options:{indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.x)+" descansos"}}},scales:{x:{...AG,ticks:{callback:fmt}},y:AN},
       onClick:(e,el)=>{if(!el.length)return;const b=el[0].index;openDrill(bandPeopleFrame("Descanso · "+DEB[b]+" h",DEB[b]+"h",DESD,[b],DEB,DECOL));}}});
 
-  // no efectivos por mes (stacked <8, 8-10)
+  // no efectivos por mes (todo <10h junto, sin separar bandas)
   const bm=bandByMonth(DESD,3);
   mkc("c_descmes",{type:"bar",data:{labels:MES_ORDER,datasets:[
-    {label:"< 8 h",data:MES_ORDER.map(m=>bm[m][0]),backgroundColor:DECOL[0],stack:"s"},
-    {label:"8–10 h",data:MES_ORDER.map(m=>bm[m][1]),backgroundColor:DECOL[1],stack:"s"}]},
-    options:{plugins:{legend:{position:"bottom"}},scales:{x:{...AN,stacked:true},y:{...AG,stacked:true,ticks:{callback:fmt}}},
+    {label:"No efectivo (< 10 h)",data:MES_ORDER.map(m=>bm[m][0]+bm[m][1]),backgroundColor:DECOL[0],borderRadius:5,maxBarThickness:48}]},
+    options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.y)+" descansos < 10 h"}}},scales:{x:AN,y:{...AG,ticks:{callback:fmt}}},
       onClick:(e,el)=>{if(!el.length)return;const m=MES_ORDER[el[0].index];const rows=bandFilter(DESD,"mes",m);openDrill(bandPeopleFrame("No efectivos · "+m,m,rows,[0,1],DEB,DECOL));}}});
 
   // por día (sigue filtro global)
