@@ -943,17 +943,24 @@ let PRESENT_MONTHS=[];(function(){const s=new Set();DMETA.forEach(m=>s.add(m.mes
 function zeroM(){const o={};PRESENT_MONTHS.forEach(m=>o[m]=0);return o;}
 const JL_THR=[{k:"-2",sign:"-",h:2,lbl:"−2 h"},{k:"-4",sign:"-",h:4,lbl:"−4 h"},{k:"-6",sign:"-",h:6,lbl:"−6 h"},{k:"+10",sign:"+",h:10,lbl:"+10 h"},{k:"+12",sign:"+",h:12,lbl:"+12 h"},{k:"+14",sign:"+",h:14,lbl:"+14 h"}];
 const TREND_METRICS={
-  inas:{label:"Inasistencias",color:T.red,goodUp:false},
+  inas:{label:"Ausentismo %",color:T.red,goodUp:false},
   correctas:{label:"Marcaciones correctas",color:T.green,goodUp:true},
   jornada:{label:"Jornada laboral",color:T.orange,goodUp:false},
   descef:{label:"Descanso efectivo",color:T.amber,goodUp:true}
 };
 function trendSeries(metric,thr){
   const g=zeroM();
-  if(metric==="inas"){for(const r of A_INAD){if(!inCG(r[0]))continue;g[DMETA[r[1]].mes]++;}return{vals:g,sub:"faltas injustificadas / inasistencias"};}
+  if(metric==="inas"){const ina=zeroM(),den=zeroM(),raw={};
+    for(const r of A_INAD){if(!inCG(r[0]))continue;const m=DMETA[r[1]].mes;ina[m]++;den[m]++;}
+    for(const r of A_DAY){if(!inCG(r[0]))continue;if(r[2]===0)den[DMETA[r[1]].mes]++;}
+    PRESENT_MONTHS.forEach(m=>{g[m]=den[m]?Math.round(ina[m]/den[m]*1000)/10:0;raw[m]={ina:ina[m],den:den[m]};});
+    return{vals:g,sub:"tasa de ausentismo (inasistencias ÷ jornadas programadas del mes)",rate:true,raw};}
   if(metric==="correctas"){const inc=zeroM();for(const r of A_MET){if(!inCG(r[0]))continue;g[DMETA[r[1]].mes]++;}for(const r of A_INCD){if(!inCG(r[0]))continue;inc[DMETA[r[1]].mes]+=r[2];}PRESENT_MONTHS.forEach(m=>g[m]=Math.max(0,g[m]-inc[m]));return{vals:g,sub:"marcaciones sin inconsistencia (marcas − incorrectas)"};}
   if(metric==="descef"){for(const r of A_DESD){if(!inCG(r[0]))continue;if(r[2]===2)g[DMETA[r[1]].mes]++;}return{vals:g,sub:"descansos entre turnos > 10 h (efectivos)"};}
-  if(metric==="jornada"){for(const r of A_HTD){if(!inCG(r[0]))continue;const h=r[2]/10,ok=thr.sign==="+"?h>=thr.h:h<thr.h;if(ok)g[DMETA[r[1]].mes]++;}return{vals:g,sub:(thr.sign==="+"?"jornadas de "+thr.h+" h o más":"jornadas menores a "+thr.h+" h")};}
+  if(metric==="jornada"){const okc=zeroM(),den=zeroM(),raw={};
+    for(const r of A_HTD){if(!inCG(r[0]))continue;const m=DMETA[r[1]].mes;den[m]++;const h=r[2]/10,ok=thr.sign==="+"?h>=thr.h:h<thr.h;if(ok)okc[m]++;}
+    PRESENT_MONTHS.forEach(m=>{g[m]=den[m]?Math.round(okc[m]/den[m]*1000)/10:0;raw[m]={ina:okc[m],den:den[m]};});
+    return{vals:g,sub:(thr.sign==="+"?"% de jornadas de "+thr.h+" h o más":"% de jornadas menores a "+thr.h+" h")+" sobre las trabajadas del mes",rate:true,raw};}
   return{vals:g,sub:""};
 }
 function trendDrill(metric,mes,thr){
@@ -974,7 +981,7 @@ function buildTrendBoard(pfx,defMetric){
   let metric=defMetric||"inas",thrK="+12";
   const thrObj=()=>JL_THR.find(x=>x.k===thrK)||JL_THR[4];
   function drawCtl(){
-    const metrics=[["inas","Inasistencias"],["correctas","Marcaciones correctas"],["jornada","Jornada laboral"],["descef","Descanso efectivo"]];
+    const metrics=[["inas","Ausentismo %"],["correctas","Marcaciones correctas"],["jornada","Jornada laboral"],["descef","Descanso efectivo"]];
     let h=`<div class="trbar"><span class="trlab">Indicador</span>`+metrics.map(([k,l])=>`<button class="trchip${metric===k?" on":""}" data-k="${k}">${l}</button>`).join("")+`<span class="trmeta" id="trend-${pfx}-meta"></span></div>`;
     if(metric==="jornada")h+=`<div class="trbar"><span class="trlab">Umbral</span><div class="thrscroll">`+JL_THR.map(t=>`<button class="thrchip${thrK===t.k?" on":""}" data-t="${t.k}">${t.lbl}</button>`).join("")+`</div></div>`;
     ctl.innerHTML=h;
@@ -985,13 +992,18 @@ function buildTrendBoard(pfx,defMetric){
     const cfg=TREND_METRICS[metric],t=thrObj(),s=trendSeries(metric,t);
     const labels=PRESENT_MONTHS,vals=labels.map(m=>s.vals[m]);
     const goodUp=metric==="jornada"?false:cfg.goodUp;
+    const isRate=!!s.rate;
     let dtxt="—",dcls="flat";const bi=vals.findIndex(v=>v>0);
-    if(bi>=0&&bi<vals.length-1){const fv=vals[bi],lv=vals[vals.length-1],d=(lv-fv)/fv*100,improving=(d>0&&goodUp)||(d<0&&!goodUp);
-      dcls=Math.abs(d)<0.5?"flat":(improving?"good":"bad");dtxt=(d>0.5?"▲":d<-0.5?"▼":"■")+" "+fmt1(Math.abs(d))+"% vs "+labels[bi];}
+    if(bi>=0&&bi<vals.length-1){const fv=vals[bi],lv=vals[vals.length-1];
+      if(isRate){const d=lv-fv,improving=(d<0&&!goodUp)||(d>0&&goodUp);
+        dcls=Math.abs(d)<0.2?"flat":(improving?"good":"bad");dtxt=(d>0.2?"▲":d<-0.2?"▼":"■")+" "+fmt1(Math.abs(d))+" pp vs "+labels[bi];}
+      else{const d=(lv-fv)/fv*100,improving=(d>0&&goodUp)||(d<0&&!goodUp);
+        dcls=Math.abs(d)<0.5?"flat":(improving?"good":"bad");dtxt=(d>0.5?"▲":d<-0.5?"▼":"■")+" "+fmt1(Math.abs(d))+"% vs "+labels[bi];}}
     const meta=$("#trend-"+pfx+"-meta");if(meta)meta.innerHTML=`<span class="tdelta ${dcls}">${dtxt}</span>`;
-    const sub=$("#trend-"+pfx+"-sub");if(sub)sub.textContent="No depende del mes seleccionado · "+(CG?"cargo: "+CG:"todos los cargos")+" · "+s.sub+" · click en una barra → personas";
+    const sub=$("#trend-"+pfx+"-sub");if(sub)sub.style.display="none";
+    const yfmt=isRate?(v=>v+"%"):fmt;
     mkc("c_trend_"+pfx,{type:"bar",data:{labels,datasets:[{label:cfg.label,data:vals,backgroundColor:cfg.color,borderRadius:6,maxBarThickness:56}]},
-      options:{plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>labels[i[0].dataIndex],label:c=>fmt(c.parsed.y)+" · "+s.sub}}},scales:{x:AN,y:{...AG,ticks:{callback:fmt}}},
+      options:{plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>labels[i[0].dataIndex],label:c=>isRate?(fmt1(c.parsed.y)+"% · "+fmt(s.raw[labels[c.dataIndex]].ina)+" de "+fmt(s.raw[labels[c.dataIndex]].den)+" jornadas"):(fmt(c.parsed.y)+" · "+s.sub)}}},scales:{x:AN,y:{...AG,ticks:{callback:yfmt}}},
         onClick:(e,el)=>{if(!el.length)return;openDrill(trendDrill(metric,labels[el[0].index],t));}}});
   }
   drawCtl();drawChart();
